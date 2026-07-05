@@ -1,3 +1,5 @@
+package com.libraryProject;
+
 import com.libraryProject.beans.Book;
 import com.libraryProject.beans.Magazine;
 import com.libraryProject.config.LibraryConfig;
