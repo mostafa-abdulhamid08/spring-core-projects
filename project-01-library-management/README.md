@@ -1,12 +1,12 @@
-# Library Management System — Spring Core Project
+# Library Management System — Spring Core Project 1
 
 ## Project Structure
 ```
-src/main/java/com/example/library/
+src/main/java/com/libraryProject/
 │
 ├── beans/
-│   ├── Book.java              ← POJO — data فقط
-│   └── Magazine.java          ← POJO — data فقط
+│   ├── Book.java              ← POJO — data only
+│   └── Magazine.java          ← POJO — data only
 │
 ├── repository/
 │   ├── BookRepository.java    ← @Repository Bean
@@ -16,8 +16,8 @@ src/main/java/com/example/library/
 │   └── LibraryService.java    ← @Service Bean — business logic
 │
 ├── config/
-│   ├── BookConfig.java        ← @Configuration — @Bean للكتب
-│   ├── MagazineConfig.java    ← @Configuration — @Bean للمجلات
+│   ├── BookConfig.java        ← @Configuration — @Bean definitions for books
+│   ├── MagazineConfig.java    ← @Configuration — @Bean definitions for magazines
 │   └── LibraryConfig.java     ← @Configuration + @Import + @ComponentScan
 │
 └── LibraryApp.java            ← Main
@@ -27,14 +27,14 @@ src/main/java/com/example/library/
 
 ## Topics Covered
 
-| Topic | فين في الكود |
+| Topic | Where in the Code |
 |---|---|
-| `NoUniqueBeanDefinitionException` | لو جربت `getBean(Book.class)` من غير `@Primary` |
-| Custom Bean Names | `@Bean(name = "cleanCodeBook")` في `BookConfig` |
-| `@Primary` | على `cleanCodeBook` — هو اللي بيتجاب لو مش حددت |
-| `@Import` | في `LibraryConfig` بيجيب `BookConfig` و`MagazineConfig` |
-| `@Component` / `@Service` / `@Repository` | في `LibraryService`, `BookRepository`, `MagazineRepository` |
-| Constructor Injection | في `LibraryService` constructor |
-| Singleton Proof | في الـ Main — `service1 == service2` → `true` |
+| `NoUniqueBeanDefinitionException` | Thrown if you call `getBean(Book.class)` without `@Primary` |
+| Custom Bean Names | `@Bean(name = "cleanCodeBook")` in `BookConfig` |
+| `@Primary` | On `cleanCodeBook` — returned when no bean name is specified |
+| `@Import` | In `LibraryConfig` — pulls in `BookConfig` and `MagazineConfig` |
+| `@Component` / `@Service` / `@Repository` | In `LibraryService`, `BookRepository`, `MagazineRepository` |
+| Constructor Injection | In the `LibraryService` constructor |
+| Singleton Proof | In Main — `s1 == s2` → `true` |
 
 ---

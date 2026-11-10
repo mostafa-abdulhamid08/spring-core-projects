@@ -1,6 +1,8 @@
+# Vehicle Fleet System — Spring Core Project 3
+
 ## Project Structure
 ```
-src/main/java/com/example/fleet/
+src/main/java/com/vehicleFleetSystem/
 │
 ├── model/
 │   ├── Vehicle.java              ← Interface — data contract
@@ -25,16 +27,17 @@ src/main/java/com/example/fleet/
 
 ## Topics Covered
 
-| Topic | فين في الكود |
+| Topic | Where in the Code |
 |---|---|
-| Constructor Injection | `FleetService` — يستقبل `FleetRepository` و`FleetLogger` |
-| Autowiring | Spring يحقن تلقائياً من غير `new` في أي حتة |
-| DI | `FleetService` مش عارف إزاي اتعمل الـ dependencies |
-| `@Service` / `@Repository` / `@Component` | كل الـ stereotype annotations |
-| `@PostConstruct` | في `FleetLogger` و`FleetService` |
-| `@PreDestroy` | في `FleetLogger` |
-| `BeanRegistrar` | في `FleetBeanRegistrar` — يسجل Electric أو Petrol حسب الـ property |
-| `@Import` | في `FleetConfig` |
-| Singleton Proof | في الـ Main |
-| `@ComponentScan` | في `FleetConfig` |
+| Constructor Injection | `FleetService` — receives `FleetRepository` and `FleetLogger` |
+| Autowiring | Spring injects dependencies automatically — no `new` anywhere |
+| DI | `FleetService` doesn't know how its dependencies were created |
+| `@Service` / `@Repository` / `@Component` | All the stereotype annotations |
+| `@PostConstruct` | In `FleetLogger` and `FleetService` |
+| `@PreDestroy` | In `FleetLogger` |
+| `BeanRegistrar` | In `FleetBeanRegistrar` — registers Electric or Petrol vehicles based on the `fleet.type` property |
+| `@Import` | In `FleetConfig` |
+| Singleton Proof | In Main |
+| `@ComponentScan` | In `FleetConfig` |
+
 ---
