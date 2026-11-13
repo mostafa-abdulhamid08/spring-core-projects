@@ -11,7 +11,7 @@ Every project is plain Spring (no Spring Boot). Each one is a standalone Maven p
 | | |
 |---|---|
 | Language | Java 25 |
-| Framework | Spring Framework 7.0.7 (`spring-context`) |
+| Framework | Spring Framework 7.0.x (`spring-context`) — 7.0.7 in projects 01–04, 7.0.10 in project 05 |
 | Lifecycle annotations | Jakarta Annotations 3.0.0 (`@PostConstruct`, `@PreDestroy`) |
 | Build tool | Maven |
 
@@ -25,6 +25,7 @@ Every project is plain Spring (no Spring Boot). Each one is a standalone Maven p
 | 02 | [Notification System](project-02-Notification-system) | `@Qualifier`, the three injection types, `Map` injection, lifecycle callbacks |
 | 03 | [Vehicle Fleet System](project-03-Vehicle-Fleet-System) | Registering beans at runtime with `BeanRegistrar` |
 | 04 | [Store Inventory System](project-04-Store-Inventory) | `@Primary` + `@Qualifier` together, `@Bean` for JDK classes, lifecycle hooks in a real flow |
+| 05 | [Order & Payment Hub](project-05-Order-Payment-Hub) | `@Profile`, external config with `@PropertySource` / `@Value`, `Map` + `List` injection, optional beans |
 
 ---
 
@@ -83,22 +84,44 @@ A small store that sells and restocks products, applies discounts, records every
 
 ---
 
+### 05 — Order & Payment Hub
+A checkout system with a product catalog, cart, tax and shipping calculation, several payment gateways (Cash on Delivery, Fawry, card), multi-channel notifications, loyalty points, and refunds. Runs as a scripted scenario or as an interactive console menu.
+
+- `@Profile` (`dev` / `prod` / `loyalty`) to switch the card gateway and notification channels, and to turn loyalty points on
+- `@PropertySource` + `@Value` (with defaults) + `Environment` lookups for externalized configuration
+- Secrets from environment variables (`PAYMOB_API_KEY`) that fail fast when missing
+- `Map<String, PaymentGateway>` and `List<NotificationChannel>` injection
+- Optional dependency with `@Autowired(required = false)` setter injection
+- `@Bean(initMethod, destroyMethod)` for a third-party class, `@PostConstruct` to seed data
+- Records with compact constructors, immutable updates, and validation before side effects
+
+**Main class:** `com.shop.hub.StoreApp`
+
+> Run with `-Dspring.profiles.active=dev` (card payments are rejected when no profile is active), and add `-Dexec.args=menu` for the interactive menu. The project README has step-by-step run instructions for every profile (none, `dev`, `prod`, `loyalty`).
+
+---
+
 ## Concepts Map
 
-| Concept | 01 | 02 | 03 | 04 |
-|---|:---:|:---:|:---:|:---:|
-| `@Configuration` / `@Bean` | ✅ | ✅ | | ✅ |
-| `@ComponentScan` | ✅ | ✅ | ✅ | ✅ |
-| `@Import` | ✅ | ✅ | ✅ | ✅ |
-| `@Component` / `@Service` / `@Repository` | ✅ | ✅ | ✅ | ✅ |
-| `@Primary` | ✅ | ✅ | | ✅ |
-| `@Qualifier` | | ✅ | | ✅ |
-| Constructor Injection | ✅ | ✅ | ✅ | ✅ |
-| Setter / Field Injection | | ✅ | | |
-| Collection (`Map`) Injection | | ✅ | | |
-| `@PostConstruct` / `@PreDestroy` | | ✅ | ✅ | ✅ |
-| `BeanRegistrar` | | | ✅ | |
-| Singleton Scope Proof | ✅ | ✅ | ✅ | |
+| Concept | 01 | 02 | 03 | 04 | 05 |
+|---|:---:|:---:|:---:|:---:|:---:|
+| `@Configuration` / `@Bean` | ✅ | ✅ | | ✅ | ✅ |
+| `@ComponentScan` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@Import` | ✅ | ✅ | ✅ | ✅ | |
+| `@Component` / `@Service` / `@Repository` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@Primary` | ✅ | ✅ | | ✅ | |
+| `@Qualifier` | | ✅ | | ✅ | |
+| Constructor Injection | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Setter / Field Injection | | ✅ | | | ✅ |
+| Collection (`Map` / `List`) Injection | | ✅ | | | ✅ |
+| Optional Dependency (`required = false`) | | | | | ✅ |
+| `@PostConstruct` / `@PreDestroy` | | ✅ | ✅ | ✅ | ✅ |
+| `@Bean(initMethod, destroyMethod)` | | | | | ✅ |
+| `BeanRegistrar` | | | ✅ | | |
+| `Environment` | | | ✅ | | ✅ |
+| `@PropertySource` / `@Value` | | | | | ✅ |
+| `@Profile` | | | | | ✅ |
+| Singleton Scope Proof | ✅ | ✅ | ✅ | | |
 
 ---
 
@@ -124,6 +147,7 @@ spring-core-projects/
 ├── project-02-Notification-system/
 ├── project-03-Vehicle-Fleet-System/
 ├── project-04-Store-Inventory/
+├── project-05-Order-Payment-Hub/
 └── README.md
 ```
 

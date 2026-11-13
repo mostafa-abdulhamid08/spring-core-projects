@@ -1,59 +1,63 @@
 package com.shop.hub;
 
 import com.shop.hub.cart.Cart;
-import com.shop.hub.catalog.ProductRepository;
-import com.shop.hub.pricing.ShippingService;
-import com.shop.hub.pricing.TaxCalculator;
+import com.shop.hub.order.CheckoutService;
+import com.shop.hub.order.RefundService;
+import com.shop.hub.ui.ConsoleMenu;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-import java.util.Arrays;
 
 public class StoreApp {
 
     public static void main(String[] args) {
         System.out.println("Order & Payment Hub starting...");
-
         try (var context = new AnnotationConfigApplicationContext(AppConfig.class)) {
-            System.out.println("Active profiles: "
-                    + Arrays.toString(context.getEnvironment().getActiveProfiles()));
-
-            for (String name : context.getBeanDefinitionNames()) {
-                System.out.println("  bean: " + name);
+            if (args.length > 0 && args[0].equals("menu")) {
+                context.getBean(ConsoleMenu.class).run();
+            } else {
+                runScenario(context);
             }
-           /* ProductRepository products = context.getBean(ProductRepository.class);   // مؤقت
-            products.findAll().forEach(System.out::println);*/
-
-            /*TaxCalculator tax = context.getBean(TaxCalculator.class);   // مؤقت
-            System.out.println("tax on 1800 = " + tax.taxOn(1800));
-            System.out.println("tax on 25000 = " + tax.taxOn(25000)); */
-
-           /* ShippingService shipping = context.getBean(ShippingService.class);   // مؤقت
-            System.out.println("Alexandria/1800  = " + shipping.feeFor("Alexandria", 1800));
-            System.out.println("Giza/900         = " + shipping.feeFor("Giza", 900));
-            System.out.println("Mansoura/25000   = " + shipping.feeFor("Mansoura", 25000));
-            System.out.println("Tanta/150        = " + shipping.feeFor("Tanta", 150));
-            System.out.println("Mansoura/150     = " + shipping.feeFor("Mansoura", 150));
-            System.out.println("GIZA/900         = " + shipping.feeFor("GIZA", 900));*/
-            var cart = new Cart();                 // بـ new، مش من الـ context
-            cart.add("HEA-001", 1);
-            cart.add("MUG-001", 2);
-            cart.add("HEA-001", 1);                // نفس الـ SKU تاني
-            System.out.println("cart: " + cart.items());
-            System.out.println("empty? " + cart.isEmpty());
-
-            try {
-                cart.add("TSH-001", 0);
-            } catch (IllegalArgumentException e) {
-                System.out.println("rejected: " + e.getMessage());
-            }
-
-            cart.items().put("LAP-001", 99);       // تعديل على النسخة بس
-            System.out.println("after editing the copy: " + cart.items());
-
-            cart.clear();
-            System.out.println("after clear: " + cart.items() + ", empty? " + cart.isEmpty());
         }
-
         System.out.println("Order & Payment Hub stopped");
+    }
+
+    private static void runScenario(ApplicationContext context) {
+        var checkout = context.getBean(CheckoutService.class);
+
+        var cart1 = new Cart();
+        cart1.add("HEA-001", 1);
+        cart1.add("MUG-001", 2);
+        attempt(() -> checkout.placeOrder(cart1, "Alexandria", "card"));
+
+        var cart2 = new Cart();
+        cart2.add("TSH-001", 3);
+        attempt(() -> checkout.placeOrder(cart2, "Giza", "cod"));
+
+        var cart3 = new Cart();
+        cart3.add("LAP-001", 1);
+        attempt(() -> checkout.placeOrder(cart3, "Mansoura", "fawry"));
+
+        var cart4 = new Cart();
+        cart4.add("MUG-001", 1);
+        attempt(() -> checkout.placeOrder(cart4, "Tanta", "cod"));
+
+        var cart5 = new Cart();
+        cart5.add("MOU-001", 1);
+        attempt(() -> checkout.placeOrder(cart5, "Tanta", "visa"));
+
+        attempt(() -> checkout.placeOrder(new Cart(), "Cairo", "cod"));
+
+        var refunds = context.getBean(RefundService.class);
+        attempt(() -> refunds.refund("ORD-1001"));
+        attempt(() -> refunds.refund("ORD-1001"));
+        attempt(() -> refunds.refund("ORD-9999"));
+    }
+
+    private static void attempt(Runnable action) {
+        try {
+            action.run();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println("REJECTED: " + e.getMessage());
+        }
     }
 }
