@@ -11,7 +11,7 @@ Every project is plain Spring (no Spring Boot). Each one is a standalone Maven p
 | | |
 |---|---|
 | Language | Java 25 |
-| Framework | Spring Framework 7.0.x (`spring-context`) — 7.0.7 in projects 01–04, 7.0.10 in project 05 |
+| Framework | Spring Framework 7.0.x (`spring-context`) — 7.0.7 in projects 01–04, 7.0.10 in projects 05–06 |
 | Lifecycle annotations | Jakarta Annotations 3.0.0 (`@PostConstruct`, `@PreDestroy`) |
 | Build tool | Maven |
 
@@ -26,6 +26,7 @@ Every project is plain Spring (no Spring Boot). Each one is a standalone Maven p
 | 03 | [Vehicle Fleet System](project-03-Vehicle-Fleet-System) | Registering beans at runtime with `BeanRegistrar` |
 | 04 | [Store Inventory System](project-04-Store-Inventory) | `@Primary` + `@Qualifier` together, `@Bean` for JDK classes, lifecycle hooks in a real flow |
 | 05 | [Order & Payment Hub](project-05-Order-Payment-Hub) | `@Profile`, external config with `@PropertySource` / `@Value`, `Map` + `List` injection, optional beans |
+| 06 | [Checkout Engine](project-06-Checkout-Engine) | Prototype scope + `ObjectProvider`, `@DependsOn`, `@Lazy`, thread-safe singletons under concurrent load |
 
 ---
 
@@ -101,27 +102,50 @@ A checkout system with a product catalog, cart, tax and shipping calculation, se
 
 ---
 
+### 06 — Checkout Engine
+A console checkout engine for a Black Friday flash sale. Three VIP orders run one by one, then 90 customers check out at the same time on virtual threads, and a report checks three guarantees: no overselling, unique order IDs, and every invoice has only its own lines.
+
+- Prototype scope inside a singleton with `ObjectProvider` (`InvoiceBuilder` in `InvoiceService`)
+- Thread safety: `AtomicInteger` for order IDs, `ConcurrentHashMap.compute` per SKU for stock
+- `@DependsOn` so `SchemaMigrator` creates the tables before `CatalogSeeder` fills them
+- `@Lazy` on the class and on the injection point (`FraudCheckClient`)
+- An `ExecutorService` `@Bean` that Spring shuts down when the context closes
+- Strict placeholders with a `static` `PropertySourcesPlaceholderConfigurer`
+- Five deliberate bugs, each documented with its symptom and fix
+
+**Main class:** `com.shop.engine.EngineApp`
+
+> Run with `-Dflash.customers=30000` (or the environment variable `FLASH_CUSTOMERS=30000`) to scale the flash sale. Stock stays at 60 units, so all three checks still pass.
+
+---
+
 ## Concepts Map
 
-| Concept | 01 | 02 | 03 | 04 | 05 |
-|---|:---:|:---:|:---:|:---:|:---:|
-| `@Configuration` / `@Bean` | ✅ | ✅ | | ✅ | ✅ |
-| `@ComponentScan` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `@Import` | ✅ | ✅ | ✅ | ✅ | |
-| `@Component` / `@Service` / `@Repository` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `@Primary` | ✅ | ✅ | | ✅ | |
-| `@Qualifier` | | ✅ | | ✅ | |
-| Constructor Injection | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Setter / Field Injection | | ✅ | | | ✅ |
-| Collection (`Map` / `List`) Injection | | ✅ | | | ✅ |
-| Optional Dependency (`required = false`) | | | | | ✅ |
-| `@PostConstruct` / `@PreDestroy` | | ✅ | ✅ | ✅ | ✅ |
-| `@Bean(initMethod, destroyMethod)` | | | | | ✅ |
-| `BeanRegistrar` | | | ✅ | | |
-| `Environment` | | | ✅ | | ✅ |
-| `@PropertySource` / `@Value` | | | | | ✅ |
-| `@Profile` | | | | | ✅ |
-| Singleton Scope Proof | ✅ | ✅ | ✅ | | |
+| Concept | 01 | 02 | 03 | 04 | 05 | 06 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| `@Configuration` / `@Bean` | ✅ | ✅ | | ✅ | ✅ | ✅ |
+| `@ComponentScan` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@Import` | ✅ | ✅ | ✅ | ✅ | | |
+| `@Component` / `@Service` / `@Repository` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@Primary` | ✅ | ✅ | | ✅ | | |
+| `@Qualifier` | | ✅ | | ✅ | | |
+| Constructor Injection | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Setter / Field Injection | | ✅ | | | ✅ | |
+| Collection (`Map` / `List`) Injection | | ✅ | | | ✅ | |
+| Optional Dependency (`required = false`) | | | | | ✅ | |
+| `@PostConstruct` / `@PreDestroy` | | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@Bean(initMethod, destroyMethod)` | | | | | ✅ | |
+| `BeanRegistrar` | | | ✅ | | | |
+| `Environment` | | | ✅ | | ✅ | |
+| `@PropertySource` / `@Value` | | | | | ✅ | ✅ |
+| `static` `PropertySourcesPlaceholderConfigurer` | | | | | ✅ | ✅ |
+| `@Profile` | | | | | ✅ | |
+| Singleton Scope Proof | ✅ | ✅ | ✅ | | | |
+| Prototype Scope + `ObjectProvider` | | | | | | ✅ |
+| `@DependsOn` | | | | | | ✅ |
+| `@Lazy` (class + injection point) | | | | | | ✅ |
+| Thread Safety (`AtomicInteger` / `ConcurrentHashMap`) | | | | | | ✅ |
+| `ExecutorService` `@Bean` closed by Spring | | | | | | ✅ |
 
 ---
 
@@ -148,6 +172,7 @@ spring-core-projects/
 ├── project-03-Vehicle-Fleet-System/
 ├── project-04-Store-Inventory/
 ├── project-05-Order-Payment-Hub/
+├── project-06-Checkout-Engine/
 └── README.md
 ```
 
